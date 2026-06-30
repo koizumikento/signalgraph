@@ -1,0 +1,40 @@
+[project]
+name = "signalgraph"
+version = "0.1.0"
+description = "A Codex-backed overseas trend signal radar built with Pydantic Graph."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "MIT" }
+authors = [{ name = "koizumikento" }]
+dependencies = [
+  "mcp>=1.0.0,<2.0.0a0",
+  "openai-codex>=0.1.0b3,<0.2",
+  "pydantic>=2.7",
+  "pydantic-graph>=0.1.0",
+  "rich>=13.7",
+  "typer>=0.12",
+]
+
+[project.scripts]
+signalgraph = "signalgraph.cli:app"
+signalgraph-mcp = "signalgraph.mcp_server:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.uv]
+prerelease = "allow"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
