@@ -101,7 +101,8 @@ def test_codex_output_schema_is_strict() -> None:
     assert schema["additionalProperties"] is False
     assert "track" in schema["required"]
     signal_schema = schema["$defs"]["TrendSignal"]
-    assert signal_schema["properties"]["source_url"]["format"] in {"uri", "uri-reference"}
+    assert signal_schema["properties"]["source_url"]["type"] == "string"
+    assert "format" not in signal_schema["properties"]["source_url"]
 
 
 def test_research_with_codex_client_parses_json_and_uses_read_only_sandbox(tmp_path) -> None:

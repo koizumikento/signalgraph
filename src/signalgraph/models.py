@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from typing import Literal
+from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, field_validator
 
 OutputLanguage = Literal["en", "ja"]
 WebSearchMode = Literal["disabled", "cached", "live"]
@@ -31,7 +32,7 @@ class SignalDecision(BaseModel):
 class TrendSignal(BaseModel):
     title: str
     source_type: SignalSourceType
-    source_url: HttpUrl
+    source_url: str
     published_date: str | None = None
     observed_at: str
     entities: list[str] = Field(default_factory=list)
@@ -43,6 +44,14 @@ class TrendSignal(BaseModel):
     credibility_score: float = Field(ge=0, le=1)
     decision: SignalDecision
     next_watch_candidates: list[str] = Field(default_factory=list)
+
+    @field_validator("source_url")
+    @classmethod
+    def validate_source_url(cls, value: str) -> str:
+        parsed = urlparse(value)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            raise ValueError("source_url must be an absolute http or https URL")
+        return value
 
 
 class TrackResearchResult(BaseModel):
