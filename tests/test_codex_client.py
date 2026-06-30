@@ -8,6 +8,7 @@ from signalgraph.codex_client import (
     _build_prompt,
     _codex_output_schema,
     _effective_config_overrides,
+    _format_track_contract,
     _language_name,
     _research_with_codex_client,
     research_tracks_with_codex,
@@ -16,7 +17,16 @@ from signalgraph.models import ResearchTrack, TrackResearchResult
 from helpers import make_signal
 
 
-TRACK = ResearchTrack(name="oss", prompt="Find OSS signals.")
+TRACK = ResearchTrack(
+    name="oss",
+    prompt="Find OSS signals.",
+    source_priorities=("GitHub repositories and releases.",),
+    include_if=("The repository has recent meaningful activity.",),
+    reject_if=("The repository is only a README concept.",),
+    scoring_notes=("Raise credibility for primary repository evidence.",),
+    japan_translation="Explain whether Japanese developer teams could use it.",
+    max_findings=4,
+)
 
 
 class FakeSandbox:
@@ -55,7 +65,22 @@ def test_build_prompt_includes_contract_and_language() -> None:
     assert "AI agents" in prompt
     assert "Japanese" in prompt
     assert "Track: oss" in prompt
+    assert "Source priorities" in prompt
+    assert "The repository has recent meaningful activity." in prompt
+    assert "The repository is only a README concept." in prompt
+    assert "Maximum findings" in prompt
     assert "Return only JSON" in prompt
+
+
+def test_format_track_contract_includes_all_sections() -> None:
+    contract = _format_track_contract(TRACK)
+
+    assert "Mission" in contract
+    assert "Source priorities" in contract
+    assert "Include if" in contract
+    assert "Reject if" in contract
+    assert "Japan translation" in contract
+    assert "- 4" in contract
 
 
 def test_language_name() -> None:
@@ -75,6 +100,8 @@ def test_codex_output_schema_is_strict() -> None:
 
     assert schema["additionalProperties"] is False
     assert "track" in schema["required"]
+    signal_schema = schema["$defs"]["TrendSignal"]
+    assert signal_schema["properties"]["source_url"]["format"] in {"uri", "uri-reference"}
 
 
 def test_research_with_codex_client_parses_json_and_uses_read_only_sandbox(tmp_path) -> None:

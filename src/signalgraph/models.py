@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 OutputLanguage = Literal["en", "ja"]
 WebSearchMode = Literal["disabled", "cached", "live"]
@@ -14,6 +14,12 @@ SignalAction = Literal["commit", "quarantine", "reject"]
 class ResearchTrack(BaseModel):
     name: ResearchTrackName
     prompt: str
+    source_priorities: tuple[str, ...] = ()
+    include_if: tuple[str, ...] = ()
+    reject_if: tuple[str, ...] = ()
+    scoring_notes: tuple[str, ...] = ()
+    japan_translation: str
+    max_findings: int = Field(default=5, ge=1, le=10)
 
 
 class SignalDecision(BaseModel):
@@ -25,7 +31,7 @@ class SignalDecision(BaseModel):
 class TrendSignal(BaseModel):
     title: str
     source_type: SignalSourceType
-    source_url: str
+    source_url: HttpUrl
     published_date: str | None = None
     observed_at: str
     entities: list[str] = Field(default_factory=list)

@@ -54,7 +54,7 @@ class NormalizeSignals(BaseNode[SignalGraphState, None, TrendBrief]):
         signals: list[TrendSignal] = []
         for result in ctx.state.track_results:
             for signal in result.signals:
-                normalized_url = signal.source_url.strip()
+                normalized_url = str(signal.source_url).strip()
                 if not normalized_url or normalized_url in seen_urls:
                     continue
                 seen_urls.add(normalized_url)

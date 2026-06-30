@@ -95,6 +95,11 @@ The default scan runs five tracks:
 Each track returns structured `TrendSignal` records. The graph validates,
 deduplicates, scores, and renders a concise brief.
 
+Each track is defined as a research contract with source priorities, include
+criteria, reject criteria, scoring notes, Japan-market translation guidance, and
+a maximum findings limit. This keeps the parallel Codex research threads from
+running as unconstrained search prompts.
+
 ## Codex Authentication
 
 SignalGraph uses the Codex SDK and therefore relies on the user's configured

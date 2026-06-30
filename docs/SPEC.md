@@ -50,3 +50,19 @@ The top-level result is `TrendBrief`:
 
 The current implementation does not persist state. Future work should add a
 state store for historical diffing, quarantine rechecks, and watchlist growth.
+
+## Research Contracts
+
+Each research track is a compact contract, not just a one-line prompt. A track
+defines:
+
+- mission
+- source priorities
+- include criteria
+- reject criteria
+- scoring notes
+- Japan-market translation guidance
+- maximum findings
+
+The Codex prompt combines the track contract with the shared research protocol
+and the strict JSON schema for `TrackResearchResult`.
