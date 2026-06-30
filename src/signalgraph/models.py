@@ -20,7 +20,8 @@ class ResearchTrack(BaseModel):
     reject_if: tuple[str, ...] = ()
     scoring_notes: tuple[str, ...] = ()
     japan_translation: str
-    max_findings: int = Field(default=5, ge=1, le=10)
+    min_candidates: int = Field(default=15, ge=1, le=50)
+    max_findings: int = Field(default=8, ge=1, le=12)
 
 
 class SignalDecision(BaseModel):

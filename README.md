@@ -97,8 +97,10 @@ deduplicates, scores, and renders a concise brief.
 
 Each track is defined as a research contract with source priorities, include
 criteria, reject criteria, scoring notes, Japan-market translation guidance, and
-a maximum findings limit. This keeps the parallel Codex research threads from
-running as unconstrained search prompts.
+candidate/finding limits. This keeps the parallel Codex research threads from
+running as unconstrained search prompts while still forcing broader discovery.
+By default, each track is instructed to inspect at least 15 plausible candidates
+when web search is live, then return at most 8 final signals.
 
 ## Codex Authentication
 

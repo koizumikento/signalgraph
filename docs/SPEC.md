@@ -62,7 +62,13 @@ defines:
 - reject criteria
 - scoring notes
 - Japan-market translation guidance
+- minimum candidates to inspect
 - maximum findings
 
 The Codex prompt combines the track contract with the shared research protocol
 and the strict JSON schema for `TrackResearchResult`.
+
+Research is instructed to run in three phases: broad candidate discovery,
+evidence filtering, and final signal selection. The default contract asks each
+track to inspect at least 15 plausible candidates when web search is live, then
+return at most 8 final signals while recording notable rejected leads.

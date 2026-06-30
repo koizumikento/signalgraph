@@ -25,6 +25,7 @@ TRACK = ResearchTrack(
     reject_if=("The repository is only a README concept.",),
     scoring_notes=("Raise credibility for primary repository evidence.",),
     japan_translation="Explain whether Japanese developer teams could use it.",
+    min_candidates=12,
     max_findings=4,
 )
 
@@ -68,6 +69,8 @@ def test_build_prompt_includes_contract_and_language() -> None:
     assert "Source priorities" in prompt
     assert "The repository has recent meaningful activity." in prompt
     assert "The repository is only a README concept." in prompt
+    assert "Minimum candidates to inspect" in prompt
+    assert "broad candidate discovery" in prompt
     assert "Maximum findings" in prompt
     assert "Return only JSON" in prompt
 
@@ -80,6 +83,7 @@ def test_format_track_contract_includes_all_sections() -> None:
     assert "Include if" in contract
     assert "Reject if" in contract
     assert "Japan translation" in contract
+    assert "- 12" in contract
     assert "- 4" in contract
 
 
