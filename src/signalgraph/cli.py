@@ -51,7 +51,9 @@ def scan(
     except ValueError as exc:
         raise typer.BadParameter(str(exc), param_hint="theme") from exc
 
-    rendered = brief.model_dump_json(indent=2) if output_format == "json" else render_markdown(brief)
+    rendered = (
+        brief.model_dump_json(indent=2) if output_format == "json" else render_markdown(brief)
+    )
 
     if out:
         out.parent.mkdir(parents=True, exist_ok=True)

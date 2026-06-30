@@ -85,7 +85,9 @@ class ScoreAndBrief(BaseNode[SignalGraphState, None, TrendBrief]):
                 or _signal_score(signal) >= ctx.state.config.quarantine_threshold
             )
         ]
-        rejected = [signal for signal in signals if signal not in committed and signal not in quarantined]
+        rejected = [
+            signal for signal in signals if signal not in committed and signal not in quarantined
+        ]
 
         return End(
             TrendBrief(
@@ -104,9 +106,7 @@ class ScoreAndBrief(BaseNode[SignalGraphState, None, TrendBrief]):
 
 def _signal_score(signal: TrendSignal) -> float:
     return (
-        signal.novelty_score * 0.35
-        + signal.momentum_score * 0.35
-        + signal.credibility_score * 0.30
+        signal.novelty_score * 0.35 + signal.momentum_score * 0.35 + signal.credibility_score * 0.30
     )
 
 

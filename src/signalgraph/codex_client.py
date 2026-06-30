@@ -13,9 +13,7 @@ from signalgraph.models import (
     WebSearchMode,
 )
 
-DEFAULT_CODEX_CONFIG_OVERRIDES = (
-    "stream_idle_timeout_ms=600000",
-)
+DEFAULT_CODEX_CONFIG_OVERRIDES = ("stream_idle_timeout_ms=600000",)
 
 RESEARCH_PROTOCOL = """Research protocol:
 - Focus on overseas sources and weak signals that may not yet be obvious in Japan.

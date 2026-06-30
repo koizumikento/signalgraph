@@ -1,0 +1,18 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Run tests with coverage
+        run: uv run --extra dev pytest
+      - name: Lint
+        run: uv run --extra dev ruff check .
+      - name: Format check
+        run: uv run --extra dev ruff format --check .

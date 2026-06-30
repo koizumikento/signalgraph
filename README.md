@@ -23,6 +23,13 @@ During local development:
 uv run signalgraph --help
 ```
 
+Run validation, including the 80% coverage gate:
+
+```bash
+uv run --extra dev pytest
+uv run --extra dev ruff check .
+```
+
 ## Usage
 
 Run a trend scan:

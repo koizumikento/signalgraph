@@ -4,30 +4,10 @@ import asyncio
 
 from signalgraph.core import render_markdown, scan_trends
 from signalgraph.models import (
-    SignalDecision,
     SignalGraphConfig,
     TrackResearchResult,
-    TrendBrief,
-    TrendSignal,
 )
-
-
-def _signal(title: str, url: str, action: str = "commit") -> TrendSignal:
-    return TrendSignal(
-        title=title,
-        source_type="oss",
-        source_url=url,
-        observed_at="2026-06-30",
-        entities=["example"],
-        summary="A concise signal.",
-        why_it_matters="It indicates early overseas momentum.",
-        japan_applicability="Could inform a Japan-facing product experiment.",
-        novelty_score=0.9,
-        momentum_score=0.8,
-        credibility_score=0.8,
-        decision=SignalDecision(action=action, reason="Strong signal.", confidence=0.8),
-        next_watch_candidates=["example follow-up"],
-    )
+from helpers import make_brief, make_signal
 
 
 def test_scan_trends_uses_graph_and_deduplicates(monkeypatch) -> None:
@@ -37,9 +17,9 @@ def test_scan_trends_uses_graph_and_deduplicates(monkeypatch) -> None:
                 track="oss",
                 summary="OSS track",
                 signals=[
-                    _signal("A", "https://example.com/a"),
-                    _signal("A duplicate", "https://example.com/a"),
-                    _signal("B", "https://example.com/b", action="quarantine"),
+                    make_signal("A", "https://example.com/a"),
+                    make_signal("A duplicate", "https://example.com/a"),
+                    make_signal("B", "https://example.com/b", action="quarantine"),
                 ],
             )
         ]
@@ -58,20 +38,21 @@ def test_scan_trends_uses_graph_and_deduplicates(monkeypatch) -> None:
 
 
 def test_render_markdown_includes_signal() -> None:
-    signal = _signal("A", "https://example.com/a")
-    brief = TrendBrief(
-        language="en",
-        theme="AI agents",
-        web_search="live",
-        summary="Summary",
-        signals=[signal],
-        committed_signals=[signal],
-        quarantined_signals=[],
-        rejected_signals=[],
-        next_watch_candidates=["example follow-up"],
-    )
+    brief = make_brief()
 
     rendered = render_markdown(brief)
 
-    assert "A" in rendered
-    assert "https://example.com/a" in rendered
+    assert "Example Signal" in rendered
+    assert "https://example.com/signal" in rendered
+
+
+def test_render_markdown_japanese_empty_sections() -> None:
+    brief = make_brief(language="ja")
+    brief.committed_signals = []
+    brief.next_watch_candidates = []
+
+    rendered = render_markdown(brief)
+
+    assert "テーマ: AI agents" in rendered
+    assert "## 正式追跡シグナル" in rendered
+    assert "- None" in rendered
