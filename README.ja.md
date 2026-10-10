@@ -1,5 +1,9 @@
 # SignalGraph
 
+Sites向けのWorker adapterとCodexを実行する専用Python backendについては
+[docs/SITES.md](docs/SITES.md)を参照してください。公開入力からローカルパスや
+Codex設定を変更できない構成で、既存のCLI・stdioは引き続き利用できます。
+
 SignalGraph は、海外のトレンドシグナルを監視し、日本市場向けの事業機会に
 翻訳するための小さな CLI / MCP ツールです。
 
