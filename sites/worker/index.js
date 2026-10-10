@@ -43,7 +43,7 @@ export default {
     let offset = 0;
     for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
     const headers = new Headers({ Authorization: `Bearer ${env.SIGNALGRAPH_BACKEND_TOKEN}` });
-    for (const name of ["accept", "content-type", "mcp-protocol-version"]) {
+    for (const name of ["accept", "content-type", "mcp-protocol-version", "mcp-method", "mcp-name"]) {
       const value = request.headers.get(name);
       if (value) headers.set(name, value);
     }

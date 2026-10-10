@@ -73,3 +73,23 @@ test("SDK JSON and notification responses survive; upstream failures are redacte
     assert.doesNotMatch(await response.text(), /secret-path/);
   }
 });
+
+test("modern discovery and calls retain per-request metadata and mirrored headers", async () => {
+  const modernMeta = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} };
+  for (const method of ["server/discover", "tools/list", "tools/call"]) {
+    const body = { jsonrpc: "2.0", id: "modern", method, params: { _meta: modernMeta,
+      ...(method === "tools/call" ? { name: "scan_trends_tool", arguments: { theme: "AI agents" } } : {}) } };
+    const result = { resultType: "complete", supportedVersions: ["2026-07-28", "2025-11-25"], capabilities: { tools: {} }, _meta: { "io.modelcontextprotocol/serverInfo": { name: "signalgraph", version: "0.1.0" } }, ttlMs: 0, cacheScope: "private" };
+    globalThis.fetch = async (url, options) => {
+      assert.equal(options.headers.get("mcp-protocol-version"), "2026-07-28");
+      assert.equal(options.headers.get("mcp-method"), method);
+      assert.equal(options.headers.get("mcp-name"), method === "tools/call" ? "scan_trends_tool" : null);
+      assert.deepEqual(JSON.parse(new TextDecoder().decode(options.body)), body);
+      return new Response(JSON.stringify({ jsonrpc: "2.0", id: "modern", result }), { headers: { "content-type": "application/json" } });
+    };
+    const response = await worker.fetch(request(body, { "mcp-protocol-version": "2026-07-28", "mcp-method": method,
+      ...(method === "tools/call" ? { "mcp-name": "scan_trends_tool" } : {}) }), env);
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).result, result);
+  }
+});
