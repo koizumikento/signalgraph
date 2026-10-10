@@ -19,6 +19,7 @@ from starlette.responses import Response
 
 from signalgraph.core import scan_trends
 from signalgraph.models import OutputLanguage, SignalGraphConfig, WebSearchMode
+from signalgraph.sites_protocol import modern_response
 
 MAX_BODY = 16_384
 SCAN_TIMEOUT = 900
@@ -139,6 +140,8 @@ def create_app(token: str, repo: Path):
             return await Response(status_code=401)(scope, receive, send)
         if "origin" in request.headers:
             return await Response(status_code=403)(scope, receive, send)
+        if request.headers.get("host") != "127.0.0.1:8000":
+            return await Response(status_code=421)(scope, receive, send)
         if request.url.path != "/mcp":
             return await Response(status_code=404)(scope, receive, send)
         if request.method != "POST":
@@ -150,9 +153,12 @@ def create_app(token: str, repo: Path):
                 return await Response(status_code=413)(scope, receive, send)
         try:
             message = json.loads(body)
+            allowed = inspect.signature(hosted_scan).parameters.keys()
+            response = await modern_response(message, request, server, allowed)
+            if response is not None:
+                return await response(scope, receive, send)
             if isinstance(message, dict) and message.get("method") == "tools/call":
                 arguments = message.get("params", {}).get("arguments", {})
-                allowed = inspect.signature(hosted_scan).parameters.keys()
                 if not isinstance(arguments, dict) or arguments.keys() - allowed:
                     return await Response(status_code=400)(scope, receive, send)
         except (ValueError, AttributeError):

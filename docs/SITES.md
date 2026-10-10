@@ -9,14 +9,17 @@ No Site, tunnel, OAuth registration, or cloud resources are created by these fil
 ## Ownership and authority
 
 The Worker accepts stateless `POST /mcp` and forwards only to an operator-configured
-HTTPS `/mcp` URL. Python's existing MCP SDK handles initialization, discovery,
-notifications, protocol version negotiation, calls, and JSON-RPC errors. GET and
+HTTPS `/mcp` URL. The locked Python MCP SDK handles legacy initialization,
+notifications, discovery and calls through 2025-11-25. `sites_protocol.py` adds
+the 2026-07-28 HTTP binding using the same registered FastMCP tool. GET and
 DELETE return 405: there are no sessions, background subscriptions, or replay.
 SSE POST responses and SDK keepalives stream without buffering, allowing long
 research calls through an HTTP tunnel. The backend runs at most one scan at a
-time, with a 15-minute deadline; callers must allow that duration. Disconnects
-are not evidence of cancellation or completion. Do not automatically replay a
-lost call: it can consume another Codex research run.
+time, with a 15-minute deadline; callers must allow that duration. Modern SSE
+disconnects cancel the request and release admission; legacy disconnects are
+not evidence of cancellation or completion. Do not automatically replay a lost
+call: it can consume another Codex research run. Local cancellation tests do not
+prove a tunnel/client disconnect reaches the backend or stops the Codex process.
 
 Sites owns OAuth and supplies trusted `oai-authenticated-user-id`. Every MCP
 request requires identity equal to the Site-scoped `SIGNALGRAPH_ALLOWED_USER_ID`.
@@ -81,6 +84,33 @@ Results retain the existing `TrendBrief` JSON text content. The current `dict`
 return type advertises no `outputSchema`/`structuredContent`; this adapter does
 not silently replace that contract. This single tool has no pagination. There
 is no historical storage or new download/path tool; CLI file output stays local.
+
+The modern HTTP surface supports `server/discover`, `ping`, `tools/list`, and
+`tools/call`. Discovery returns `supportedVersions`, `capabilities: {tools: {}}`,
+`resultType: "complete"`, and `_meta["io.modelcontextprotocol/serverInfo"]` with
+the package name/version. Discovery and the single-page tool list include
+`ttlMs: 0`, `cacheScope: "private"` and HTTP `Cache-Control: no-store`.
+Resources, prompts, subscriptions and multi-round-trip interactions are not
+advertised. The existing tool keeps its JSON text result; modern results add
+`resultType` and server metadata without changing the research payload.
+
+Every modern request carries `params._meta` with
+`io.modelcontextprotocol/protocolVersion` and an object-valued
+`io.modelcontextprotocol/clientCapabilities`; optional `clientInfo` is validated
+per request. `MCP-Protocol-Version` and `Mcp-Method` must mirror the body, and
+`Mcp-Name` must mirror tool/prompt names or resource URIs, decoding the standard
+Base64 sentinel when supplied. The Worker forwards these three headers intact.
+Mismatch or missing mirrors return HTTP 400 / `-32020`; unsupported versions
+return HTTP 400 / `-32022` with `data.supported` and `data.requested`.
+Well-formed requests for unsupported methods return HTTP 404 / `-32601`.
+
+As a bounded compatibility exception for the Sites pre-version probe, authenticated
+`server/discover` with exactly `params: {}` can omit request metadata; any supplied
+method mirror must still match. This exception does not apply to list/call/ping
+requests or relax identity, token, Host, Origin, or body-size checks. Discovery
+also advertises the locked SDK's legacy versions; its existing stateless POST
+transport remains available. Deprecated standalone HTTP+SSE endpoints are not
+exposed. No protocol state or capabilities are borrowed from a previous request.
 
 ## Prepare the private backend
 
@@ -148,8 +178,9 @@ package with ordered commands `["npm","test"]`, `["npm","run","build"]`,
 the official owner-private workflow. Do not deploy with raw Wrangler, add a
 second OAuth implementation, or register a replacement plugin. After deployment,
 verify `get_site(include_mcp_connection: true)` reports MCP enabled and reuse the
-returned platform plugin. An authorized signed-in client must initialize,
-discover `scan_trends_tool`, and complete a read-only call; an anonymous client,
+returned platform plugin. An authorized signed-in client must use modern
+`server/discover` (or a legacy `initialize`), discover `scan_trends_tool`, and
+complete a read-only call; an anonymous client,
 a wrong member and service bypass alone must fail. Verify backend SSE keepalives
 and client timeout with an actual long call before operational acceptance.
 
@@ -160,12 +191,22 @@ SDK HTTP adapter with mocked research. It compares local/hosted graph output,
 source provenance, discovery, notification responses, authorization, forbidden
 inputs, size/protocol errors, and redacted failure/timeout results.
 `sites/tests/worker.test.mjs` verifies identity gates, fixed forwarding, secret
-header filtering, redirect rejection and unbuffered SSE using synthetic fixtures.
+header filtering, redirect rejection, modern mirror/body preservation and
+unbuffered SSE using synthetic fixtures. `tests/test_sites_modern.py` checks
+actual backend JSON/SSE responses, the Sites empty discovery probe, per-request
+metadata, mirrored headers, input guards, redacted failures and disconnect
+cancellation with mocked research. Legacy tests remain active.
 CI runs Python tests/coverage, Ruff and the Worker tests/build/artifact check.
 These establish local/mock contracts; they do not establish live Codex login,
 live model tool isolation, hosted Sites identity, tunnel connectivity, plugin
 installation, or client acceptance. No live external research is required for
 tests. Do not describe those boundaries as passed without separate evidence.
+
+For a short API-key-free transport smoke check, use modern `ping` followed by
+`tools/list`. These are protocol requests, not research-tool acceptance.
+`scan_trends_tool` requires the operator's Codex login and its five research
+tracks even with `web_search="disabled"`; there is no short keyless read tool
+in the current registration. Do not add one solely to claim live acceptance.
 
 Record any test server PID and exact temporary resource paths/IDs before using
 them. Stop only owned test processes and remove only generated fixture directories,
@@ -178,8 +219,11 @@ record the verified deletion status. Never rewrite existing hosted data to test.
 ## Official references checked 2026-10-10
 
 - [MCP 2025-11-25 Streamable HTTP](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
+- [MCP 2026-07-28 Discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+- [MCP 2026-07-28 Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
 - [Official Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk): implementation uses locked v1.28.1,
-  stateless HTTP and POST SSE; later SDK/protocol revisions require compatibility checks.
+  stateless HTTP and POST SSE for legacy requests. Its version types do not
+  implement 2026-07-28; the hosted binding covers only the advertised surface.
 - [Codex 0.144.4 config schema](https://github.com/openai/codex/blob/rust-v0.144.4/codex-rs/core/config.schema.json)
   and offline `codex features list` from the SDK's pinned runtime.
 - [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/)

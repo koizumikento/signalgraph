@@ -9,6 +9,8 @@ research. Keep the architecture narrow:
 - `src/signalgraph/cli.py` and `src/signalgraph/mcp_server.py` should stay thin.
 - `src/signalgraph/sites_backend.py` owns the bounded private HTTP entry point;
   `sites/worker/index.js` owns Sites identity enforcement and fixed forwarding.
+  `src/signalgraph/sites_protocol.py` owns the 2026-07-28 HTTP binding; reuse the
+  same registered FastMCP tool and leave legacy transport to the locked SDK.
   See `docs/SITES.md` for deployment prerequisites and contract/acceptance limits.
 
 ## Codex SDK Rules
