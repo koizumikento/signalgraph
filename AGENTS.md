@@ -7,6 +7,9 @@ research. Keep the architecture narrow:
 - `src/signalgraph/codex_client.py` owns Codex SDK integration.
 - `src/signalgraph/models.py` owns public data contracts.
 - `src/signalgraph/cli.py` and `src/signalgraph/mcp_server.py` should stay thin.
+- `src/signalgraph/sites_backend.py` owns the bounded private HTTP entry point;
+  `sites/worker/index.js` owns Sites identity enforcement and fixed forwarding.
+  See `docs/SITES.md` for deployment prerequisites and contract/acceptance limits.
 
 ## Codex SDK Rules
 

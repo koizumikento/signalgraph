@@ -80,7 +80,11 @@ Run as an MCP server:
 signalgraph-mcp
 ```
 
-The MCP server exposes `scan_trends`.
+The MCP server exposes `scan_trends_tool`.
+
+For a Sites Worker adapter and private Codex-backed Python backend, see
+[docs/SITES.md](docs/SITES.md). The hosted adapter preserves the research output
+while restricting paths, runtime overrides, and workload bounds for remote calls.
 
 ## Research Tracks
 

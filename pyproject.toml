@@ -18,8 +18,10 @@ dependencies = [
 [project.scripts]
 signalgraph = "signalgraph.cli:app"
 signalgraph-mcp = "signalgraph.mcp_server:main"
+signalgraph-sites-backend = "signalgraph.sites_backend:main"
 
 [project.optional-dependencies]
+sites = ["mcp>=1.28.1,<2.0.0a0", "uvicorn>=0.31,<1"]
 dev = [
   "pytest>=8.0",
   "pytest-cov>=5.0",
